@@ -2,7 +2,7 @@
 
 <br />
 
-<img src="https://ahafrog.com/assets/logo/logo.png" alt="ahafrog" width="88" />
+<img src="https://github.com/user-attachments/assets/c2fb3885-9fe5-4c96-b8e8-15b4213fe911" alt="ahafrog" width="88" />
 
 <h1>ahafrog</h1>
 
