@@ -28,10 +28,10 @@ if lsof -ti :3100 >/dev/null 2>&1; then
   sleep 0.5
 fi
 
-# Start Node engine state server in background
-if [ -d node ]; then
+# Start Node engine state server in background (bundled under edgameclaw/node/)
+if [ -d "$ROOT_DIR/edgameclaw/node" ]; then
   echo "  Starting Node engine server on port 3100..."
-  (cd "$ROOT_DIR/node" && PORT=3100 node server.js) &
+  (cd "$ROOT_DIR/edgameclaw/node" && PORT=3100 node server.js) &
   NODE_PID=$!
 fi
 
@@ -46,9 +46,10 @@ else
   exit 1
 fi
 
-# Start Python server (must run from ROOT_DIR so server.py is importable)
+# Start Python server (repo root on PYTHONPATH so `edgameclaw` package resolves)
 cd "$ROOT_DIR"
-"$UVICORN" server:app --host "$BIND_HOST" --port "$PORT"
+export PYTHONPATH="$ROOT_DIR${PYTHONPATH:+:$PYTHONPATH}"
+"$UVICORN" edgameclaw.server:app --host "$BIND_HOST" --port "$PORT"
 
 # Cleanup
 if [ -n "$NODE_PID" ]; then

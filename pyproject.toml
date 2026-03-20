@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edgameclaw"
+version = "0.1.1"
+description = "Self-hosted AI studio: turn learning materials into playable browser mini-games"
+readme = "README_PYPI.md"
+requires-python = ">=3.10"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "Yuqi Hang" }]
+dependencies = [
+  "fastapi>=0.100.0",
+  "uvicorn[standard]>=0.22.0",
+  "python-multipart>=0.0.6",
+  "aiofiles>=23.0.0",
+  "httpx>=0.24.0",
+  "python-dotenv>=1.0.0",
+  "openai>=1.0.0",
+  "esprima>=4.0.1",
+  "jinja2>=3.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yh2072/edgameclaw"
+Repository = "https://github.com/yh2072/edgameclaw"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["edgameclaw*"]
+
+[tool.setuptools.package-data]
+# Omit readme/**/*.gif — GIFs are large; PyPI wheel stays small. Full demos: GitHub repo readme/.
+edgameclaw = [
+  "static/**/*",
+  "engine/**/*",
+  "readme/**/*.png",
+  "readme/**/*.jpg",
+  "readme/**/*.jpeg",
+  "readme/**/*.webp",
+  "readme/**/*.svg",
+  "readme/**/*.ico",
+  "generator/sandbox_harness.js",
+  "node/**/*",
+]

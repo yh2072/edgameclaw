@@ -1,0 +1,4 @@
+# Keep wheels/sdists small: do not ship GIF demos under readme/ (full assets stay on GitHub).
+# Wheel file list comes from [tool.setuptools.package-data] in pyproject.toml;
+# this file prunes GIFs from the source distribution.
+recursive-exclude edgameclaw/readme *.gif

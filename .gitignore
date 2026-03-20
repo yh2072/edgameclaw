@@ -13,7 +13,15 @@ generator/__pycache__/
 
 # Node
 node/node_modules/
+edgameclaw/node/node_modules/
 node_modules/
+
+# PyPI / setuptools
+dist/
+build/
+*.egg-info/
+*.egg
+# Keep README_PYPI.md in git: [project] readme in pyproject.toml points to it — do NOT ignore it.
 
 # OS
 .DS_Store

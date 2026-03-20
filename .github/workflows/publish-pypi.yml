@@ -1,0 +1,37 @@
+# Publish to PyPI when you push a version tag like v0.1.2
+# Or run manually: Actions → Publish to PyPI → Run workflow
+#
+# One-time GitHub setup:
+#   Repo → Settings → Secrets and variables → Actions → New repository secret
+#   Name: PYPI_API_TOKEN
+#   Value: API token from https://pypi.org/manage/account/token/
+#
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build tools
+        run: pip install build twine
+      - name: Build sdist and wheel
+        run: python -m build
+      - name: Check package
+        run: twine check dist/*
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
