@@ -46,9 +46,7 @@ No accounts. No cloud uploads. No subscription. All generated courses live on yo
 
 ## 🎬 How It Works
 
-<video src="readme/demo.mp4" controls width="100%">
-  <a href="readme/demo.mp4">Watch demo video</a>
-</video>
+**Demo:** [demo](https://github.com/yh2072/edgameclaw/issues/1#issuecomment-4059754684)
 
 Paste your content → AI generates a full game-based course → Play instantly in your browser.
 
