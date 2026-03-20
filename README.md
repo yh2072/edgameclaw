@@ -2,6 +2,29 @@
   <img src="readme/edgameclaw_logo.png" alt="EdGameClaw" width="160">
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/License-AGPL--3.0-orange?style=for-the-badge" alt="License AGPL-3.0" />
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+" />
+  <img src="https://img.shields.io/badge/LLM-OpenAI%20compatible-412991?style=for-the-badge" alt="OpenAI-compatible LLM" />
+  <img src="https://img.shields.io/badge/Self--hosted-✓-success?style=for-the-badge" alt="Self-hosted" />
+</p>
+
+<p align="center">
+  <b>🌐 Language / 语言</b><br />
+  <a href="README.md"><img src="https://img.shields.io/badge/English-README-2ea44f?style=for-the-badge" alt="English README" /></a>
+  <a href="README_CN.md"><img src="https://img.shields.io/badge/简体中文-README-555?style=for-the-badge" alt="简体中文 README" /></a>
+</p>
+
+<p align="center">
+  <a href="https://ahafrog.com"><strong>🌐 ahafrog.com</strong></a> &nbsp;·&nbsp;
+  <a href="https://github.com/yh2072/edgameclaw">⭐ GitHub</a> &nbsp;·&nbsp;
+  <a href="https://openrouter.ai"><strong>🔌 OpenRouter</strong></a> &nbsp;·&nbsp;
+  <a href="#citation">📖 Citation</a> &nbsp;·&nbsp;
+  <a href="#quick-start">🚀 Quick Start</a>
+</p>
+
+---
+
 # EdGameClaw — AI Game-Based Learning Studio
 
 > **Turn any learning material into playable mini-games — in minutes.**
@@ -46,7 +69,9 @@ No accounts. No cloud uploads. No subscription. All generated courses live on yo
 
 ## 🎬 How It Works
 
-**Demo:** [demo](https://github.com/yh2072/edgameclaw/issues/1#issuecomment-4059754684)
+<p align="center">
+  <a href="https://github.com/yh2072/edgameclaw/issues/1#issuecomment-4059754684"><img src="https://img.shields.io/badge/▶_Watch-demo-on-GitHub-24292f?style=for-the-badge&logo=github&logoColor=white" alt="Watch demo" /></a>
+</p>
 
 Paste your content → AI generates a full game-based course → Play instantly in your browser.
 
@@ -67,14 +92,14 @@ Each game below was generated from **a single sentence or short paragraph**. No 
 </td>
 <td align="center" width="25%">
 
-**神经科学：全局 vs 局部**
+**global vs. local debate in neuroscience**
 
 ![神经科学全局局部辩论](readme/神经科学全局局部辩论.gif)
 
 </td>
 <td align="center" width="25%">
 
-**经济学原理**
+**basic economics principles**
 
 ![经济学原理](readme/经济学原理.gif)
 
@@ -101,7 +126,7 @@ EdGameClaw doesn't just create games — it first generates a structured course 
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start {#quick-start}
 
 ### Option 1: Python (Recommended)
 
@@ -153,6 +178,8 @@ Copy `.env.example` to `.env` and set your values:
 *You can also enter your API key directly in the Studio UI — it's stored only in your browser.
 
 ### Recommended AI Providers
+
+**Default stack:** [**OpenRouter**](https://openrouter.ai) (`API_BASE_URL=https://openrouter.ai/api/v1`) — one key, [many models](https://openrouter.ai/models), pay-as-you-go.
 
 **Recommended model:** `google/gemini-3-flash-preview` via OpenRouter — fast and cost-effective.
 
@@ -214,7 +241,7 @@ Generate courses in: **English, Chinese (中文), Japanese (日本語), Spanish 
 
 ## 📜 License
 
-This project is open source under the **AGPL-3.0** license. See [LICENSE](./LICENSE) for the full text. For commercial licensing, contact: [yh2072@nyu.edu](mailto:yh2072@nyu.edu).
+This project is open source under the **AGPL-3.0** license. See [LICENSE-AGPL-3.0](./LICENSE-AGPL-3.0) for the full text. For commercial licensing, contact: [yh2072@nyu.edu](mailto:yh2072@nyu.edu).
 
 ---
 
@@ -228,6 +255,22 @@ Built something great with EdGameClaw? **Publish it on [ahafrog.com](https://aha
 
 ---
 
+## 📖 Citation {#citation}
+
+If you use EdGameClaw in research or a project, please cite:
+
+```bibtex
+@software{hang2026edgameclaw,
+  author    = {Hang, Yuqi},
+  title     = {EdGameClaw: AI Game-Based Learning Studio},
+  year      = {2026},
+  url       = {https://github.com/yh2072/edgameclaw},
+  note      = {Open-source AI pipeline for converting learning content into interactive mini-games}
+}
+```
+
+---
+
 ## 👤 Author
 
 **Yuqi Hang** — PhD Student @ New York University
@@ -235,6 +278,7 @@ Built something great with EdGameClaw? **Publish it on [ahafrog.com](https://aha
 Built EdGameClaw as an open-source foundation for AI-powered game-based learning. Research interests include AI for educational games, human-computer interaction, neuroaesthetics and educational neuroscience.
 
 - GitHub: [@yh2072](https://github.com/yh2072)
+- Website: [yuqihang.net](https://yuqihang.net)
 - Project: [ahafrog.com](https://ahafrog.com)
 
 ---

@@ -28,5 +28,4 @@ Thumbs.db
 # Logs
 *.log
 
-# Large media (host on GitHub Issues / Releases instead; GitHub limit 100MB)
-readme/demo.mp4
+# Keep readme/demo.mp4 under 100 MB if committed (GitHub file limit)
