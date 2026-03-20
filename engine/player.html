@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<!-- Created by Yuqi Hang (github.com/yh2072) -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Loading…</title>
+<style id="player-share-fallback">
+#share-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);pointer-events:auto}
+#share-modal.visible{display:flex}
+#share-modal-inner{background:rgba(20,10,18,0.98);border:2px solid rgba(255,200,220,0.3);border-radius:16px;padding:20px 24px;max-width:360px;width:90%;box-shadow:0 0 30px rgba(255,100,150,0.2);pointer-events:auto}
+#share-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;background:rgba(20,60,40,0.9);border:1px solid #90e0a0;border-radius:10px;color:#90e0a0;font-size:12px;z-index:101;opacity:0;transition:opacity 0.3s;pointer-events:none}
+#share-toast.visible{opacity:1}
+#share-btn{position:fixed;top:12px;right:12px;z-index:50;cursor:pointer}
+</style>
+<style id="rotate-prompt-style">
+#_rp {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: #07020f;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-family: 'PixelZH','Courier New',monospace;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#_rp._show { display: flex; }
+#_rp-icon {
+  font-size: 72px;
+  animation: _rp-tilt 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px #c060d0);
+}
+@keyframes _rp-tilt {
+  0%,100% { transform: rotate(0deg); }
+  45%,55% { transform: rotate(90deg); }
+}
+#_rp-arrow {
+  font-size: 36px;
+  color: #c080d0;
+  animation: _rp-fade 1.8s ease-in-out infinite;
+}
+@keyframes _rp-fade {
+  0%,100% { opacity: 0.3; transform: scale(0.9); }
+  50%      { opacity: 1;   transform: scale(1.15); }
+}
+#_rp-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #e8c8ff;
+  letter-spacing: 1px;
+}
+#_rp-sub {
+  font-size: 12px;
+  color: #7050a0;
+  letter-spacing: 0.5px;
+}
+</style>
+<div id="injected-style"></div>
+<script>
+(function(){
+  var params = new URLSearchParams(location.search);
+  var course = params.get('course') || '';
+  var game = params.get('game') || '';
+  if (!course || !game) {
+    document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#c080a0;font-family:monospace">Use ?course=COURSE_ID&game=CHUNK_ID</div>';
+    return;
+  }
+
+  // Store share token from URL into sessionStorage (mirrors course page logic)
+  var shareToken = params.get('share') || '';
+  if (shareToken && course) sessionStorage.setItem('edgame_share_' + course, shareToken);
+  else shareToken = sessionStorage.getItem('edgame_share_' + course) || '';
+
+  var apiBase = location.origin;
+
+  // Build fetch options: forward JWT token and share_token for access control
+  var fetchUrl = apiBase + '/api/play/' + encodeURIComponent(course) + '/' + encodeURIComponent(game) + '/package';
+  if (shareToken) fetchUrl += '?share_token=' + encodeURIComponent(shareToken);
+  var fetchOpts = { headers: {} };
+  var jwt = localStorage.getItem('edgame_d1_token');
+  if (jwt) fetchOpts.headers['Authorization'] = 'Bearer ' + jwt;
+
+  fetch(fetchUrl, fetchOpts)
+    .then(function(r) {
+      if (r.status === 401 || r.status === 403) throw new Error('ACCESS_DENIED');
+      if (!r.ok) {
+        return r.json().then(function(body) {
+          if (body && body.reason === 'login_required') throw new Error('ACCESS_DENIED');
+          if (body && body.reason === 'rate_limit') throw new Error('RATE_LIMIT');
+          throw new Error('Package not found');
+        }).catch(function(e) { throw e.message ? e : new Error('Package not found'); });
+      }
+      return r.json();
+    })
+    .then(function(pkg) {
+      if (pkg.styleBlock) {
+        var div = document.getElementById('injected-style');
+        if (div) div.outerHTML = pkg.styleBlock;
+      }
+      window.GAME = pkg.config || {};
+      window.SCRIPT = pkg.script || [];
+      if (!GAME.audioBase) GAME.audioBase = '/assets/audio/';
+      document.title = (pkg.title || 'EdGame') + ' — ' + (pkg.subtitle || '');
+      var ui = pkg.ui || {};
+      var theme = pkg.theme || {};
+      var el;
+      if ((el = document.getElementById('title-text'))) el.textContent = pkg.title || 'EdGame';
+      if ((el = document.getElementById('subtitle-text'))) el.textContent = pkg.subtitle || '';
+      if ((el = document.getElementById('start-hint'))) el.textContent = (ui.startHint || 'Click to start') + ' · ' + (pkg.total_chapters || 6) + ' ' + (ui.chapters || 'chapters');
+      if ((el = document.getElementById('name-label'))) el.textContent = ui.nameLabel || 'Name';
+      if ((el = document.getElementById('player-name-input'))) el.placeholder = ui.namePlaceholder || 'Your name';
+      if ((el = document.getElementById('start-btn'))) el.textContent = ui.startGame || 'Start';
+      if ((el = document.getElementById('share-copied-msg'))) el.setAttribute('data-msg', ui.shareCopied || 'Link copied!');
+      if ((el = document.getElementById('dialog-next'))) el.textContent = ui.clickToContinue || 'Click to continue';
+      if ((el = document.getElementById('back-to-course'))) el.href = apiBase + '/courses/' + encodeURIComponent(course) + '/';
+      var shareBtn = document.getElementById('share-btn');
+      if (shareBtn) shareBtn.textContent = '\u2398 ' + (ui.shareGame || 'Share');
+      var shareOpts = document.querySelectorAll('.share-opt, #share-modal h3');
+      shareOpts.forEach(function(o) {
+        var a = o.getAttribute('data-action');
+        var t = o.tagName === 'H3' ? ui.shareGame : (a === 'copy' ? ui.shareCopyLink : a === 'wechat' ? ui.shareWeChat : a === 'xiaohongshu' ? ui.shareXiaohongshu : a === 'linkedin' ? ui.shareLinkedIn : a === 'twitter' ? ui.shareTwitter : a === 'facebook' ? ui.shareFacebook : a === 'instagram' ? ui.shareInstagram : ui.shareGame);
+        if (t) o.setAttribute('title', t);
+        if (o.tagName === 'H3') o.textContent = t || 'Share';
+        else if (a === 'copy') o.textContent = '\u2398 ' + (ui.shareCopyLink || 'Copy link');
+      });
+      if (theme.border && (el = document.getElementById('title-cover'))) el.style.border = '2px solid ' + theme.border;
+      if (theme.glow && (el = document.getElementById('title-cover'))) el.style.boxShadow = '0 0 30px ' + theme.glow;
+      if (theme.muted && (el = document.getElementById('start-hint'))) el.style.color = theme.muted;
+      function runInit() {
+        var initJs = pkg.init_js;
+        if (initJs) {
+          var s = document.createElement('script');
+          s.textContent = initJs;
+          document.body.appendChild(s);
+        }
+      }
+      function injectScripts() {
+        window.BACKGROUNDS = window.BACKGROUNDS || [];
+        window.CHAR_DRAW_FNS = window.CHAR_DRAW_FNS || {};
+        // Load engine.js FIRST so gpx/grect/registerMinigame are defined before
+        // pixel art scripts run — prevents "Identifier already declared" SyntaxError
+        // when AI-generated pixel art re-declares gpx/grect with const/let.
+        var eng = document.createElement('script');
+        eng.src = apiBase + '/engine/engine.js';
+        eng.onload = function() {
+          var parts = [pkg.pixel_art_js, pkg.cover_js].filter(Boolean);
+          for (var i = 0; i < parts.length; i++) {
+            var code = parts[i];
+            if (typeof code !== 'string' || !code.trim()) continue;
+            try {
+              var s = document.createElement('script');
+              s.textContent = code;
+              document.body.appendChild(s);
+            } catch (err) {
+              console.warn('Game: inject script failed', err);
+            }
+          }
+          window.BACKGROUNDS = window.BACKGROUNDS || [];
+          window.CHAR_DRAW_FNS = window.CHAR_DRAW_FNS || {};
+          // Restore rect/px to the engine's correct implementations in case pixel art
+          // defined window.rect/window.px overrides with a different signature.
+          // Engine defines rect(x,y,w,h,c) — always use #main canvas context.
+          (function() {
+            var _mc = document.getElementById('main');
+            var _mctx = _mc ? _mc.getContext('2d') : null;
+            if (_mctx) {
+              window.rect = function(x,y,w,h,c){_mctx.fillStyle=c;_mctx.fillRect(x,y,w,h);};
+              window.px = function(x,y,c){_mctx.fillStyle=c;_mctx.fillRect(x,y,1,1);};
+            }
+          })();
+          if (pkg.minigames_js && typeof pkg.minigames_js === 'string' && pkg.minigames_js.trim()) {
+            try {
+              var s = document.createElement('script');
+              s.textContent = pkg.minigames_js;
+              document.body.appendChild(s);
+            } catch (err) { console.warn('Game: minigames_js inject failed', err); }
+          }
+          runInit();
+        };
+        eng.onerror = function() { console.error('Game: failed to load engine.js'); };
+        document.body.appendChild(eng);
+      }
+      injectScripts();
+    })
+    .catch(function(e) {
+      if (e.message === 'ACCESS_DENIED') {
+        document.body.innerHTML = '<div style="padding:60px 24px;text-align:center;font-family:monospace;background:#08080b;min-height:100vh"><div style="width:48px;height:48px;margin:0 auto 16px;color:#c8fb50"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div style="color:#c8fb50;font-size:18px;margin-bottom:10px">无访问权限</div><div style="color:#7878a0;font-size:13px;margin-bottom:24px">请登录或购买课程后游玩，或通过分享链接预览第一个游戏。</div><a href="/courses/' + encodeURIComponent(course) + '/" style="color:#88ce02;font-size:13px">← 返回课程页面</a></div>';
+      } else if (e.message === 'RATE_LIMIT') {
+        document.body.innerHTML = '<div style="padding:60px 24px;text-align:center;font-family:monospace;background:#08080b;min-height:100vh"><div style="width:48px;height:48px;margin:0 auto 16px;color:#ff9f0a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div><div style="color:#ffc44d;font-size:18px;margin-bottom:10px">今日加载次数已达上限</div><div style="color:#7878a0;font-size:13px;margin-bottom:24px">请明天再来继续游玩。</div><a href="/courses/' + encodeURIComponent(course) + '/" style="color:#88ce02;font-size:13px">← 返回课程页面</a></div>';
+      } else {
+        document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#ff6a6a;font-family:monospace">Failed to load game: ' + (e.message || e) + '</div>';
+      }
+    });
+})();
+</script>
+</head>
+<body>
+<canvas id="grain-noise" style="position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;mix-blend-mode:soft-light;opacity:0.55" aria-hidden="true"></canvas>
+<a id="back-to-course" href="#">← Back</a>
+<button type="button" id="share-btn" onclick="window.openShareModal && window.openShareModal();">⎘ Share</button>
+<div id="share-modal" role="dialog">
+  <div id="share-modal-inner">
+    <h3>Share</h3>
+    <div class="share-options">
+      <button type="button" class="share-opt" data-action="copy">📋 Copy link</button>
+      <button type="button" class="share-opt" data-action="wechat">💬 WeChat</button>
+      <button type="button" class="share-opt" data-action="xiaohongshu">📕 Xiaohongshu</button>
+      <button type="button" class="share-opt" data-action="linkedin">in LinkedIn</button>
+      <button type="button" class="share-opt" data-action="twitter">𝕏 Twitter</button>
+      <button type="button" class="share-opt" data-action="facebook">f Facebook</button>
+      <button type="button" class="share-opt" data-action="instagram">📷 Instagram</button>
+    </div>
+    <button type="button" id="share-close">×</button>
+  </div>
+</div>
+<script>window.openShareModal=function(){var m=document.getElementById('share-modal');if(m)m.classList.add('visible');};</script>
+<div id="share-toast" aria-live="polite"></div>
+<span id="share-copied-msg" data-msg="Link copied!" aria-hidden="true"></span>
+<div id="game-container">
+<canvas id="main" width="128" height="96"></canvas>
+<canvas id="particles-canvas" width="768" height="576"></canvas>
+<div id="ui-overlay"><div id="chapter-bar"></div><div id="xp-bar"><div id="xp-track"><div id="xp-fill"></div></div><div id="xp-label"></div></div></div>
+<div id="chapter-transition"></div>
+<div id="level-up-overlay"></div>
+<div id="score-feedback"></div>
+<div id="audio-controls">
+  <button class="audio-btn" id="btn-bgm" onclick="Audio.toggleBGM()">&#9835;</button>
+  <button class="audio-btn" id="btn-sfx" onclick="Audio.toggleSFX()">&#9834;</button>
+</div>
+<div id="character-layer"></div>
+<div id="dialog-click-area"></div>
+<div id="dialog-box">
+  <div id="dialog-name"></div>
+  <div id="dialog-text"></div>
+  <div id="dialog-next">Click to continue</div>
+</div>
+<div id="title-screen">
+  <canvas id="title-cover" width="128" height="96" style="image-rendering:pixelated;width:512px;height:384px;border-radius:12px;margin-bottom:16px;display:none"></canvas>
+  <canvas id="title-logo" width="64" height="64" style="image-rendering:pixelated;width:192px;height:192px;margin-bottom:12px"></canvas>
+  <h1 id="title-text">Loading…</h1>
+  <div class="subtitle" id="subtitle-text"></div>
+  <div id="name-input-group">
+    <label id="name-label" for="player-name-input">Name</label>
+    <input type="text" id="player-name-input" placeholder="Your name" maxlength="12">
+  </div>
+  <button class="start-btn" id="start-btn" onclick="startGame()">Start</button>
+  <div id="start-hint" style="font-size:12px;margin-top:16px"></div>
+  <a href="javascript:void(0)" class="share-link" onclick="window.openShareModal && window.openShareModal(); return false;">⎘ Share</a>
+</div>
+<div id="mini-game-overlay"></div>
+<div id="game-watermark" style="position:absolute;bottom:6px;right:10px;z-index:12;pointer-events:none;font-size:10px;color:rgba(200,200,220,0.55);opacity:0.75;letter-spacing:0.5px">EdGameClaw · <a href="https://github.com/yh2072/edgameclaw" target="_blank" style="color:inherit;text-decoration:none;pointer-events:auto">github.com/yh2072</a></div>
+<button id="mg-report-fixed" style="display:none;position:absolute;bottom:16px;right:90px;z-index:200;pointer-events:auto;opacity:0.85;font-size:11px;padding:6px 12px;border-radius:8px;background:rgba(255,80,80,0.15);color:#f0c0c0;border:1px solid rgba(255,80,80,0.35);cursor:pointer;font-family:'PixelZH','Courier New',monospace;">报错</button>
+<button id="mg-skip-fixed" style="display:none;position:absolute;bottom:16px;right:16px;z-index:200;pointer-events:auto;opacity:0.85;font-size:11px;padding:6px 14px;border-radius:8px;background:rgba(255,100,150,0.15);color:#e8d8f0;border:1px solid rgba(255,100,150,0.3);border-radius:8px;cursor:pointer;font-family:'PixelZH','Courier New',monospace;">跳过 →</button>
+</div>
+<script>
+(function(){
+  document.addEventListener('contextmenu',function(e){e.preventDefault()});
+  document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&(e.key==='s'||e.key==='S'||e.key==='u'||e.key==='U')){e.preventDefault()}
+    if(e.key==='F12'){e.preventDefault()}
+  });
+  document.addEventListener('dragstart',function(e){e.preventDefault()});
+})();
+</script>
+<script>
+(function(){
+  var elMsg = document.getElementById('share-copied-msg');
+  var shareCopiedText = (elMsg && elMsg.getAttribute('data-msg')) || 'Link copied!';
+  var modal = document.getElementById('share-modal');
+  var toast = document.getElementById('share-toast');
+  var closeBtn = document.getElementById('share-close');
+  function showToast(msg) {
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('visible');
+    setTimeout(function(){ toast.classList.remove('visible'); }, 2000);
+  }
+  function getShareUrl() {
+    var course = (new URLSearchParams(location.search)).get('course') || (window.GAME && window.GAME.courseId) || '';
+    return (window.auth && typeof window.auth.getShareLinkUrl === 'function')
+      ? window.auth.getShareLinkUrl(course).catch(function(){ return window.location.href; })
+      : Promise.resolve(window.location.href);
+  }
+  function copyGameLink() {
+    getShareUrl().then(function(url) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function(){ showToast(shareCopiedText); }).catch(function(){ fallbackCopy(url); });
+      } else { fallbackCopy(url); }
+    }).catch(function(){ fallbackCopy(window.location.href); });
+  }
+  function fallbackCopy(url) {
+    var ta = document.createElement('textarea'); ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); showToast(shareCopiedText); } catch(e) { showToast(url); }
+    document.body.removeChild(ta);
+  }
+  window.openShareModal = function() {
+    if (modal) modal.classList.add('visible');
+  };
+  function closeShareModal() {
+    if (modal) modal.classList.remove('visible');
+  }
+  if (closeBtn) closeBtn.addEventListener('click', closeShareModal);
+  if (modal) modal.addEventListener('click', function(e) { if (e.target === modal) closeShareModal(); });
+  var shareBtnEl = document.getElementById('share-btn');
+  if (shareBtnEl) shareBtnEl.addEventListener('click', function(){ if (window.openShareModal) window.openShareModal(); });
+  var shareOpts = document.querySelectorAll('.share-opt');
+  for (var i = 0; i < shareOpts.length; i++) {
+    shareOpts[i].addEventListener('click', function() {
+      var action = this.getAttribute('data-action');
+      if (action === 'copy') { copyGameLink(); return; }
+      copyGameLink();
+    });
+  }
+})();
+</script>
+<script>
+(function(){var c=document.getElementById('grain-noise');if(!c)return;var gl=c.getContext('webgl',{alpha:true});if(!gl)return;var dpr=Math.min(window.devicePixelRatio||1,2);c.width=window.innerWidth*dpr;c.height=window.innerHeight*dpr;gl.viewport(0,0,c.width,c.height);var vs=gl.createShader(gl.VERTEX_SHADER);gl.shaderSource(vs,'attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}');gl.compileShader(vs);var fs=gl.createShader(gl.FRAGMENT_SHADER);gl.shaderSource(fs,'precision lowp float;uniform vec2 u_res;float rand(vec2 co){return fract(sin(dot(co,vec2(12.9898,78.233)))*43758.5453);}void main(){vec2 st=gl_FragCoord.xy/u_res;float n=rand(st*u_res);gl_FragColor=vec4(vec3(n),0.38);}');gl.compileShader(fs);var prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);gl.useProgram(prog);var buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);var pos=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);var uRes=gl.getUniformLocation(prog,'u_res');gl.uniform2f(uRes,c.width,c.height);gl.drawArrays(gl.TRIANGLES,0,6);window.addEventListener('resize',function(){c.width=window.innerWidth*dpr;c.height=window.innerHeight*dpr;gl.viewport(0,0,c.width,c.height);gl.uniform2f(uRes,c.width,c.height);gl.drawArrays(gl.TRIANGLES,0,6)});})();
+</script>
+<style id="mobile-scale-style">
+/* Mobile: scale game-container to fit viewport with padding */
+@media (pointer:coarse) and (max-width:1280px) {
+  html, body {
+    overflow: hidden !important;
+    width: 100dvw !important;
+    height: 100dvh !important;
+    min-height: unset !important;
+  }
+  body {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  #game-container {
+    flex-shrink: 0 !important;
+    transform: scale(var(--mg-scale, 0.5)) !important;
+    transform-origin: center center !important;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    margin: 0 !important;
+  }
+  /* Share btn & back link: always accessible on mobile */
+  #share-btn {
+    position: fixed !important;
+    top: env(safe-area-inset-top, 8px) !important;
+    right: 12px !important;
+    z-index: 9999 !important;
+  }
+  #back-to-course {
+    position: fixed !important;
+    top: env(safe-area-inset-top, 8px) !important;
+    left: 12px !important;
+    z-index: 9999 !important;
+  }
+}
+</style>
+<div id="_rp">
+  <div id="_rp-icon">📱</div>
+  <div id="_rp-arrow">↻</div>
+  <div id="_rp-title">请旋转手机横屏游玩</div>
+  <div id="_rp-sub">Rotate to landscape</div>
+</div>
+<script>
+/* ── Mobile: auto-lock landscape + scale game to fit viewport ── */
+(function(){
+  var isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0)
+               && Math.min(screen.width || 0, screen.height || 0) < 768;
+  if (!isMobile) return;
+
+  var GW = 768, GH = 576, PAD = 28;
+
+  /* Calculate and set CSS scale variable */
+  function updateScale() {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var s = Math.min((vw - PAD * 2) / GW, (vh - PAD * 2) / GH);
+    if (s > 1) s = 1;
+    document.documentElement.style.setProperty('--mg-scale', s.toFixed(4));
+  }
+
+  /* Try to lock orientation to landscape */
+  function tryLockLandscape() {
+    if (screen.orientation && typeof screen.orientation.lock === 'function') {
+      screen.orientation.lock('landscape-primary').catch(function(){});
+    }
+  }
+
+  /* Show/hide rotate prompt for devices that ignore the lock (e.g. iOS) */
+  var overlay = document.getElementById('_rp');
+  function updatePrompt() {
+    if (!overlay) return;
+    var portrait = window.innerHeight > window.innerWidth;
+    overlay.classList.toggle('_show', portrait);
+  }
+
+  /* Init */
+  tryLockLandscape();
+  updateScale();
+  updatePrompt();
+
+  window.addEventListener('orientationchange', function(){
+    setTimeout(function(){ updateScale(); updatePrompt(); }, 300);
+  });
+  window.addEventListener('resize', function(){ updateScale(); updatePrompt(); });
+})();
+</script>
+</body>
+</html>

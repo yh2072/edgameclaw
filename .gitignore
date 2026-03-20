@@ -1,0 +1,30 @@
+# Environment
+.env
+*.env
+
+# Generated content (user data — don't commit)
+courses/
+jobs/
+assets/audio/
+__pycache__/
+generator/__pycache__/
+*.pyc
+*.pyo
+.python-version
+
+# Node
+node/node_modules/
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

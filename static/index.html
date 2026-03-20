@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<!-- Created by Yuqi Hang (github.com/yh2072) -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EdGameClaw — AI Game-Based Learning</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08080b;--card:#0f0f14;
+  --border:#1c1c2e;--border2:#26263c;
+  --green:#88ce02;--greenL:#c8fb50;--greenD:rgba(136,206,2,0.10);
+  --cyan:#00e5c8;--amber:#ff9f0a;
+  --text:#ffffff;--text2:#b0b0c8;--muted:#7878a0;
+  --font:system-ui,sans-serif;--radius:16px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;line-height:1.6}
+a{color:inherit;text-decoration:none}
+
+/* Nav */
+nav{position:sticky;top:0;z-index:100;background:rgba(8,8,11,0.7);backdrop-filter:blur(32px);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;width:100%}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;width:100%}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
+.brand-icon{width:32px;height:32px;background:linear-gradient(135deg,#88ce02,#00e5c8);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.nav-links{display:flex;gap:8px}
+.nav-link{padding:7px 16px;border-radius:10px;font-size:13px;color:var(--muted);border:1px solid transparent;transition:all .2s;cursor:pointer}
+.nav-link:hover{color:var(--text);border-color:var(--border)}
+.nav-link.primary{background:rgba(136,206,2,0.2);color:var(--greenL);border:1px solid rgba(136,206,2,0.35)}
+.nav-link.primary:hover{background:rgba(136,206,2,0.35)}
+
+/* Hero */
+.hero{text-align:center;padding:100px 24px 80px;max-width:800px;margin:0 auto}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(136,206,2,0.1);border:1px solid rgba(136,206,2,0.3);color:var(--greenL);font-size:12px;font-weight:600;letter-spacing:1px;margin-bottom:24px}
+.hero h1{font-size:clamp(36px,6vw,64px);font-weight:800;line-height:1.1;margin-bottom:20px;letter-spacing:-1px}
+.hero h1 span{background:linear-gradient(135deg,#88ce02,#00e5c8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:18px;color:var(--text2);max-width:560px;margin:0 auto 32px}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-hero{padding:14px 32px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:8px}
+.btn-hero-primary{background:rgba(136,206,2,0.25);color:var(--greenL);border:1px solid rgba(136,206,2,0.5)}
+.btn-hero-primary:hover{background:rgba(136,206,2,0.4);transform:translateY(-1px)}
+.btn-hero-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-hero-ghost:hover{border-color:var(--green);color:var(--text);transform:translateY(-1px)}
+
+/* How it works */
+.section{padding:80px 24px;max-width:1100px;margin:0 auto}
+.section-label{font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-bottom:12px}
+.section-title{font-size:clamp(28px,4vw,42px);font-weight:800;margin-bottom:16px;letter-spacing:-0.5px}
+.section-sub{font-size:16px;color:var(--text2);max-width:520px;line-height:1.6}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.step{padding:28px;background:rgba(17,13,32,0.5);border:1px solid var(--border);border-radius:var(--radius);position:relative}
+.step-num{font-size:48px;font-weight:800;color:rgba(136,206,2,0.15);position:absolute;top:16px;right:20px;line-height:1}
+.step-icon{font-size:32px;margin-bottom:16px;display:block}
+.step h3{font-size:18px;font-weight:700;margin-bottom:8px;color:var(--greenL)}
+.step p{font-size:14px;color:var(--text2);line-height:1.6}
+
+/* Features */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
+.feat{padding:24px;background:rgba(17,13,32,0.35);border:1px solid var(--border);border-radius:var(--radius)}
+.feat-icon{font-size:28px;margin-bottom:12px;display:block}
+.feat h3{font-size:15px;font-weight:700;margin-bottom:6px}
+.feat p{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* CTA */
+.cta{text-align:center;padding:80px 24px;background:linear-gradient(180deg,transparent,rgba(136,206,2,0.04))}
+.cta h2{font-size:clamp(28px,4vw,42px);font-weight:800;margin-bottom:16px}
+.cta p{font-size:16px;color:var(--text2);margin-bottom:32px}
+
+/* Footer */
+footer{border-top:1px solid var(--border);padding:32px 24px;text-align:center;color:var(--muted);font-size:13px}
+footer a{color:var(--cyan);text-decoration:none}
+footer a:hover{color:var(--greenL)}
+footer .footer-links{display:flex;gap:20px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+
+/* Divider */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:0 24px}
+
+@media(max-width:768px){
+  .steps,.features{grid-template-columns:1fr}
+  nav{position:relative}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="brand">
+      <img src="/readme/edgameclaw_logo.png" alt="EdGameClaw" width="32" height="32" style="border-radius:9px;object-fit:contain">
+      EdGameClaw
+    </div>
+    <div class="nav-links">
+      <a href="https://github.com/yuqihang/edgameclaw" target="_blank" class="nav-link">⭐ GitHub</a>
+      <a href="/studio" class="nav-link primary">Open Studio →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="badge">✨ Open Source · Self-Hosted · No Login Required</div>
+  <h1>Turn Any Content Into<br><span>Playable Mini-Games</span></h1>
+  <p>EdGameClaw converts your learning material into interactive AI-generated mini-games. Paste text, click generate, play immediately.</p>
+  <div class="hero-actions">
+    <a href="/studio" class="btn-hero btn-hero-primary">🎮 Launch Studio</a>
+    <a href="https://github.com/yuqihang/edgameclaw" target="_blank" class="btn-hero btn-hero-ghost">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- How it works -->
+<section class="section">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Three Steps to Gamified Learning</h2>
+  <p class="section-sub">No game design experience needed. Just paste your content and let AI do the rest.</p>
+
+  <div class="steps">
+    <div class="step">
+      <span class="step-num">1</span>
+      <span class="step-icon">📝</span>
+      <h3>Paste Your Content</h3>
+      <p>Add any learning material — textbooks, notes, research papers, or training manuals — in Markdown format.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">2</span>
+      <span class="step-icon">🤖</span>
+      <h3>AI Generates Games</h3>
+      <p>Our AI pipeline analyzes your content and creates custom mini-games that match each concept's ideal learning mechanic.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">3</span>
+      <span class="step-icon">🎮</span>
+      <h3>Play & Learn</h3>
+      <p>Each chapter becomes an interactive game with pixel art visuals, dialog, and scoring — playable instantly in your browser.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Features -->
+<section class="section">
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Everything You Need</h2>
+
+  <div class="features">
+    <div class="feat">
+      <span class="feat-icon">🌍</span>
+      <h3>8 Languages</h3>
+      <p>Generate courses in English, Chinese, Japanese, Spanish, French, Korean, Arabic, and German.</p>
+    </div>
+    <div class="feat">
+      <span class="feat-icon">🎨</span>
+      <h3>24 Visual Themes</h3>
+      <p>From pixel cute to sci-fi to Chinese ink painting — each lesson gets a unique visual style.</p>
+    </div>
+    <div class="feat">
+      <span class="feat-icon">⚡</span>
+      <h3>Any AI Provider</h3>
+      <p>Works with OpenRouter, OpenAI, SiliconFlow, Gemini, or any OpenAI-compatible API.</p>
+    </div>
+    <div class="feat">
+      <span class="feat-icon">💾</span>
+      <h3>Local Storage</h3>
+      <p>All courses saved locally on your machine. No cloud, no database, no subscription fees.</p>
+    </div>
+    <div class="feat">
+      <span class="feat-icon">🔒</span>
+      <h3>No Login Required</h3>
+      <p>Just run the server and start creating. No accounts, no tracking, full privacy.</p>
+    </div>
+    <div class="feat">
+      <span class="feat-icon">🛠️</span>
+      <h3>Open Source</h3>
+      <p>Open source under AGPL-3.0. Commercial licensing: yh2072@nyu.edu. Your data stays yours.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2>Ready to Gamify Your Learning?</h2>
+  <p>Self-host in minutes with Docker or Python. Free and open source.</p>
+  <div class="hero-actions">
+    <a href="/studio" class="btn-hero btn-hero-primary">🎮 Open Studio</a>
+    <a href="https://github.com/yuqihang/edgameclaw#readme" target="_blank" class="btn-hero btn-hero-ghost">📖 Read Docs</a>
+  </div>
+</section>
+
+<footer>
+  <p>Created by <strong><a href="https://github.com/yh2072" target="_blank">Yuqi Hang</a></strong> · <a href="https://github.com/yh2072/edgameclaw" target="_blank">github.com/yh2072</a></p>
+  <p style="margin-top:6px;opacity:0.7">Built with ❤️ — <strong><a href="https://ahafrog.com" target="_blank">ahafrog</a></strong>, the hosted platform, is built on top of EdGameClaw</p>
+  <div class="footer-links">
+    <a href="https://github.com/yh2072/edgameclaw" target="_blank">GitHub</a>
+    <a href="https://github.com/yh2072/edgameclaw/issues" target="_blank">Issues</a>
+    <a href="https://github.com/yh2072/edgameclaw/blob/main/LICENSE" target="_blank">AGPL-3.0</a>
+    <a href="mailto:yh2072@nyu.edu">Commercial</a>
+  </div>
+</footer>
+
+</body>
+</html>
