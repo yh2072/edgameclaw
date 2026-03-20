@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/LLM-OpenAI%20compatible-412991?style=for-the-badge" alt="LLM" />
   <img src="https://img.shields.io/badge/Self--hosted-✓-success?style=for-the-badge" alt="Self-hosted" />
   <a href="https://pypi.org/project/edgameclaw/"><img src="https://img.shields.io/pypi/v/edgameclaw.svg?style=for-the-badge&amp;label=PyPI" alt="PyPI version" /></a>
+  <a href="https://discord.gg/wesebXsxHV"><img src="https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&amp;logo=discord&amp;logoColor=white" alt="Discord" /></a>
 </p>
 
 <p align="center">

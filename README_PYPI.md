@@ -6,6 +6,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI](https://img.shields.io/pypi/v/edgameclaw.svg)](https://pypi.org/project/edgameclaw/)
 [![GitHub](https://img.shields.io/badge/GitHub-yh2072%2Fedgameclaw-181717?logo=github)](https://github.com/yh2072/edgameclaw)
+[![Discord](https://img.shields.io/badge/Discord-Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/wesebXsxHV)
 
 **Full documentation, demo video, screenshots, and bilingual (English / 中文) guide:**  
 **https://github.com/yh2072/edgameclaw#readme**
